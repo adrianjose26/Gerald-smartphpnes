@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================================================
+   Estilos base de Ventura Smart Phone
+   ========================================================= */
+:root {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  @apply font-body antialiased;
+  margin: 0;
+}
+
+/* Foco visible accesible en toda la app */
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid #ff6a00;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Scrollbar discreta */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(104, 114, 132, 0.35);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(104, 114, 132, 0.55);
+}
+
+@layer components {
+  /* Botón primario con degradado de marca */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-grotesk font-bold text-white
+           bg-brand-gradient shadow-soft transition active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .dark .btn-primary {
+    @apply bg-brand-gradient-premium;
+  }
+
+  /* Botón secundario / superficie */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-grotesk font-bold
+           bg-light-surface text-light-text border border-light-border shadow-soft transition active:scale-[0.98]
+           hover:bg-light-bg2;
+  }
+  .dark .btn-ghost {
+    @apply bg-dark-surface text-dark-text border-dark-border hover:bg-dark-border/40;
+  }
+
+  /* Tarjeta base */
+  .card {
+    @apply rounded-card bg-light-surface border border-light-border shadow-card;
+  }
+  .dark .card {
+    @apply bg-dark-surface border-dark-border;
+  }
+
+  /* Pill de categoría */
+  .pill {
+    @apply inline-flex items-center gap-1.5 rounded-pill px-2.5 py-1 text-xs font-grotesk font-bold;
+  }
+
+  /* Input estándar */
+  .field {
+    @apply w-full rounded-xl border border-light-border bg-light-surface px-3.5 py-2.5 text-sm text-light-text
+           placeholder:text-light-muted/70 transition focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none;
+  }
+  .dark .field {
+    @apply border-dark-border bg-dark-bg text-dark-text placeholder:text-dark-muted/70;
+  }
+
+  .label {
+    @apply mb-1.5 block text-xs font-grotesk font-bold uppercase tracking-wide text-light-muted;
+  }
+  .dark .label {
+    @apply text-dark-muted;
+  }
+}
+
+/* Impresión: al imprimir una factura, ocultar todo menos el documento. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  .print\:hidden {
+    display: none !important;
+  }
+}
+
+/* Animación de entrada para toasts y modales */
+@keyframes ventura-pop {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-pop {
+  animation: ventura-pop 0.18s ease-out;
+}

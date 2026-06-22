@@ -1,0 +1,14 @@
+# Configuración de despliegue en Netlify — Ventura Smart Phone
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA: todas las rutas se sirven desde index.html
+# (react-router maneja el enrutamiento del lado del cliente).
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
