@@ -350,8 +350,9 @@ export const useStore = create((set, get) => ({
     document.documentElement.classList.toggle('dark', dark)
   },
 
-  // Reinicia todo a los datos de ejemplo (útil para demos).
-  async resetDemo() {
+  // Vacía todos los datos y deja la app lista para empezar de cero
+  // (conserva las categorías por defecto).
+  async resetData() {
     const seed = buildSeed()
     for (const t of TABLES) await write(t, seed[t])
     await markSeeded()
@@ -364,6 +365,6 @@ export const useStore = create((set, get) => ({
       settings: { ...DEFAULT_SETTINGS, ...seed.settings },
     })
     get()._applyTheme()
-    get().notify('Datos de ejemplo restaurados')
+    get().notify('Datos restablecidos · listo para empezar')
   },
 }))

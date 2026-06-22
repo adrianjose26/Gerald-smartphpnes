@@ -15,7 +15,7 @@ export default function Settings() {
   const addCategoria = useStore((s) => s.addCategoria)
   const updateCategoria = useStore((s) => s.updateCategoria)
   const deleteCategoria = useStore((s) => s.deleteCategoria)
-  const resetDemo = useStore((s) => s.resetDemo)
+  const resetData = useStore((s) => s.resetData)
 
   const [nueva, setNueva] = useState({ nombre: '', color: '#FF6A00' })
   const [editId, setEditId] = useState(null)
@@ -155,11 +155,11 @@ export default function Settings() {
           <p className="mt-1 text-sm font-grotesk font-bold tracking-widest text-brand-orange">@VENTURASMARTPHONE</p>
         </div>
 
-        {/* Datos de ejemplo */}
+        {/* Restablecer datos */}
         <div className="card p-5">
-          <h3 className="mb-1 font-display text-base font-bold text-light-text dark:text-dark-text">Datos de ejemplo</h3>
-          <p className="mb-3 text-sm text-light-muted dark:text-dark-muted">Restaura el inventario, clientes y movimientos de demostración. Se perderán los cambios actuales.</p>
-          <button className="btn-ghost" onClick={() => setResetOpen(true)}><RotateCcw size={16} /> Restaurar demo</button>
+          <h3 className="mb-1 font-display text-base font-bold text-light-text dark:text-dark-text">Restablecer datos</h3>
+          <p className="mb-3 text-sm text-light-muted dark:text-dark-muted">Borra todos los productos, clientes, movimientos y facturas, y deja la app vacía lista para empezar. Se conservan las categorías por defecto.</p>
+          <button className="btn-ghost" onClick={() => setResetOpen(true)}><RotateCcw size={16} /> Vaciar y empezar de cero</button>
         </div>
       </div>
 
@@ -177,11 +177,11 @@ export default function Settings() {
       </Modal>
 
       {/* Confirmar reset */}
-      <Modal open={resetOpen} onClose={() => setResetOpen(false)} title="Restaurar datos de ejemplo" size="sm">
-        <p className="text-sm text-light-text dark:text-dark-text">¿Seguro? Esto reemplaza todos los datos actuales por los de demostración.</p>
+      <Modal open={resetOpen} onClose={() => setResetOpen(false)} title="Vaciar todos los datos" size="sm">
+        <p className="text-sm text-light-text dark:text-dark-text">¿Seguro? Esto borra todos los productos, clientes, movimientos y facturas. No se puede deshacer.</p>
         <div className="mt-5 flex justify-end gap-2">
           <button className="btn-ghost" onClick={() => setResetOpen(false)}>Cancelar</button>
-          <button className="btn-primary" onClick={() => { resetDemo(); setResetOpen(false) }}>Restaurar</button>
+          <button className="btn-primary !bg-none !bg-brand-red" onClick={() => { resetData(); setResetOpen(false) }}>Vaciar todo</button>
         </div>
       </Modal>
     </PageShell>
