@@ -1,60 +1,66 @@
 // =========================================================
-//  Generación de PDF de la factura
-//  Captura el nodo del documento de factura con html2canvas y
-//  lo coloca en una página A4 con jsPDF.
+//  Generación de PDF / imagen de la factura
+//  ---------------------------------------------------------
+//  El documento se captura SIEMPRE a un ancho fijo (igual en PC y
+//  celular) clonándolo en un contenedor oculto. Así la factura sale
+//  con el mismo tamaño/proporción sin importar el dispositivo.
+//  html2canvas y jsPDF se cargan de forma diferida (dynamic import).
 // =========================================================
-// html2canvas y jsPDF se cargan de forma diferida (dynamic import) para no
-// pesar en la carga inicial: solo se descargan al generar el primer PDF.
+
+const FIXED_WIDTH = 720 // ancho del documento (igual al de escritorio)
+
+/** Espera a que todas las imágenes de un nodo terminen de cargar. */
+function waitForImages(node) {
+  const imgs = Array.from(node.querySelectorAll('img'))
+  return Promise.all(
+    imgs.map((img) =>
+      img.complete && img.naturalWidth
+        ? Promise.resolve()
+        : new Promise((res) => {
+            img.onload = res
+            img.onerror = res
+          })
+    )
+  )
+}
 
 /**
- * Genera el PDF a partir de un nodo del DOM y lo devuelve como Blob/File,
- * SIN descargarlo. Útil para compartirlo como archivo o descargarlo aparte.
- * @param {HTMLElement} node  nodo a capturar
- * @param {string} filename   nombre del archivo .pdf
- * @returns {Promise<{ blob: Blob, file: File, filename: string }>}
+ * Captura un nodo a un <canvas> con ANCHO FIJO, independientemente del
+ * dispositivo: clona el nodo en un contenedor oculto de ancho fijo y
+ * captura ese clon (así no importa lo angosta que sea la pantalla).
  */
-export async function invoiceToPdfBlob(node, filename = 'factura.pdf') {
+async function renderCanvas(node, width = FIXED_WIDTH) {
   if (!node) throw new Error('No hay documento que exportar')
+  const { default: html2canvas } = await import('html2canvas')
 
-  const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
-    import('html2canvas'),
-    import('jspdf'),
-  ])
-
-  const canvas = await html2canvas(node, {
-    scale: 2, // mayor nitidez
-    backgroundColor: '#ffffff',
-    useCORS: true,
-    logging: false,
+  // Contenedor oculto de ancho fijo
+  const wrapper = document.createElement('div')
+  Object.assign(wrapper.style, {
+    position: 'fixed',
+    left: '-10000px',
+    top: '0',
+    width: `${width + 24}px`,
+    background: '#ffffff',
   })
 
-  const img = canvas.toDataURL('image/png')
-  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+  const clone = node.cloneNode(true)
+  clone.style.width = `${width}px`
+  clone.style.maxWidth = `${width}px`
+  wrapper.appendChild(clone)
+  document.body.appendChild(wrapper)
 
-  const pageW = pdf.internal.pageSize.getWidth()
-  const pageH = pdf.internal.pageSize.getHeight()
-  const margin = 10
-  const usableW = pageW - margin * 2
-
-  // proporción de la imagen respecto al ancho útil
-  const imgH = (canvas.height * usableW) / canvas.width
-  let heightLeft = imgH
-  let position = margin
-
-  pdf.addImage(img, 'PNG', margin, position, usableW, imgH)
-  heightLeft -= pageH - margin * 2
-
-  // si el documento es más alto que una página, añade páginas
-  while (heightLeft > 0) {
-    position = heightLeft - imgH + margin
-    pdf.addPage()
-    pdf.addImage(img, 'PNG', margin, position, usableW, imgH)
-    heightLeft -= pageH - margin * 2
+  try {
+    await waitForImages(clone)
+    return await html2canvas(clone, {
+      scale: 2, // mayor nitidez
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      logging: false,
+      windowWidth: width + 24,
+    })
+  } finally {
+    document.body.removeChild(wrapper)
   }
-
-  const blob = pdf.output('blob')
-  const file = new File([blob], filename, { type: 'application/pdf' })
-  return { blob, file, filename }
 }
 
 /** Dispara la descarga de un Blob con el nombre indicado. */
@@ -70,9 +76,41 @@ export function downloadBlob(blob, filename) {
 }
 
 /**
- * Conveniencia: genera el PDF y lo descarga directamente.
- * @returns {Promise<Blob>}
+ * Genera el PDF (ancho fijo) y lo devuelve como Blob/File, sin descargarlo.
+ * @returns {Promise<{ blob: Blob, file: File, filename: string }>}
  */
+export async function invoiceToPdfBlob(node, filename = 'factura.pdf') {
+  const canvas = await renderCanvas(node)
+  const { jsPDF } = await import('jspdf')
+
+  const img = canvas.toDataURL('image/png')
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+
+  const pageW = pdf.internal.pageSize.getWidth()
+  const pageH = pdf.internal.pageSize.getHeight()
+  const margin = 10
+  const usableW = pageW - margin * 2
+
+  const imgH = (canvas.height * usableW) / canvas.width
+  let heightLeft = imgH
+  let position = margin
+
+  pdf.addImage(img, 'PNG', margin, position, usableW, imgH)
+  heightLeft -= pageH - margin * 2
+
+  while (heightLeft > 0) {
+    position = heightLeft - imgH + margin
+    pdf.addPage()
+    pdf.addImage(img, 'PNG', margin, position, usableW, imgH)
+    heightLeft -= pageH - margin * 2
+  }
+
+  const blob = pdf.output('blob')
+  const file = new File([blob], filename, { type: 'application/pdf' })
+  return { blob, file, filename }
+}
+
+/** Conveniencia: genera el PDF y lo descarga directamente. */
 export async function invoiceToPdf(node, filename = 'factura.pdf') {
   const { blob } = await invoiceToPdfBlob(node, filename)
   downloadBlob(blob, filename)
@@ -80,14 +118,13 @@ export async function invoiceToPdf(node, filename = 'factura.pdf') {
 }
 
 /**
- * Genera una IMAGEN (JPG) de la factura, sin descargarla.
- * Ideal para enviar por WhatsApp (se ve en el chat al instante).
+ * Genera una IMAGEN (JPG) de la factura a ancho fijo, sin descargarla.
+ * Ideal para enviar por WhatsApp (se ve en el chat al instante y siempre
+ * con el mismo tamaño).
  * @returns {Promise<{ blob: Blob, file: File, filename: string }>}
  */
 export async function invoiceToImageBlob(node, filename = 'factura.jpg') {
-  if (!node) throw new Error('No hay documento que exportar')
-  const { default: html2canvas } = await import('html2canvas')
-  const canvas = await html2canvas(node, { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false })
+  const canvas = await renderCanvas(node)
   const blob = await new Promise((res) => canvas.toBlob(res, 'image/jpeg', 0.95))
   const file = new File([blob], filename, { type: 'image/jpeg' })
   return { blob, file, filename }
