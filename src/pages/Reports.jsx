@@ -8,12 +8,24 @@ import PageShell from '../components/layout/PageShell'
 import StatCard from '../components/ui/StatCard'
 import EmptyState from '../components/ui/EmptyState'
 
-const RANGOS = [
-  { value: '7', label: '7 días' },
-  { value: '30', label: '30 días' },
-  { value: '90', label: '90 días' },
-  { value: 'all', label: 'Todo' },
-]
+// Clave del mes actual (YYYY-MM)
+function mesActual() {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+
+// Lista de los últimos 12 meses + "Todo" para filtrar los reportes.
+function buildMeses() {
+  const out = [{ value: 'todo', label: 'Todo el historial' }]
+  const now = new Date()
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const label = d.toLocaleDateString('es-DO', { month: 'long', year: 'numeric' })
+    out.push({ value, label: label.charAt(0).toUpperCase() + label.slice(1) })
+  }
+  return out
+}
 
 export default function Reports() {
   const facturas = useStore((s) => s.facturas)
@@ -22,15 +34,22 @@ export default function Reports() {
   const productoById = useStore((s) => s.productoById)
   const currency = useStore((s) => s.settings.currency)
 
-  const [rango, setRango] = useState('30')
+  const MESES = useMemo(() => buildMeses(), [])
+  const [periodo, setPeriodo] = useState(mesActual())
 
-  const desde = useMemo(() => {
-    if (rango === 'all') return 0
-    return Date.now() - Number(rango) * 86400000
-  }, [rango])
+  // Rango de fechas [desde, hasta) del mes seleccionado.
+  const { desde, hasta } = useMemo(() => {
+    if (periodo === 'todo') return { desde: 0, hasta: Infinity }
+    const [y, mo] = periodo.split('-').map(Number)
+    return { desde: new Date(y, mo - 1, 1).getTime(), hasta: new Date(y, mo, 1).getTime() }
+  }, [periodo])
 
   const data = useMemo(() => {
-    const facturasRango = facturas.filter((f) => new Date(f.fecha).getTime() >= desde)
+    const enRango = (fecha) => {
+      const t = new Date(fecha).getTime()
+      return t >= desde && t < hasta
+    }
+    const facturasRango = facturas.filter((f) => enRango(f.fecha))
     const ventas = facturasRango.reduce((s, f) => s + (f.precio || 0), 0)
 
     // Costo de lo vendido (según precio de compra del producto ligado)
@@ -42,7 +61,7 @@ export default function Reports() {
 
     // Compras: entradas de inventario en el rango × precio de compra
     const compras = movimientos
-      .filter((mv) => mv.tipo === 'entrada' && new Date(mv.fecha).getTime() >= desde)
+      .filter((mv) => mv.tipo === 'entrada' && enRango(mv.fecha))
       .reduce((s, mv) => {
         const p = productoById(mv.productoId)
         return s + Math.abs(movementDelta(mv)) * (p?.precioCompra || 0)
@@ -64,26 +83,25 @@ export default function Reports() {
       .reduce((s, p) => s + p.precioVenta, 0)
 
     return { facturasRango, ventas, costoVentas, ganancia, compras, masVendidos, valorInventario, count: facturasRango.length }
-  }, [facturas, productos, movimientos, desde]) // eslint-disable-line
+  }, [facturas, productos, movimientos, desde, hasta]) // eslint-disable-line
 
   const margen = data.ventas > 0 ? Math.round((data.ganancia / data.ventas) * 100) : 0
 
   return (
     <PageShell title="Reportes" subtitle="Ventas, compras y ganancia">
-      {/* Selector de rango */}
+      {/* Selector de mes */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <span className="text-sm font-grotesk font-bold text-light-muted dark:text-dark-muted">Período:</span>
-        {RANGOS.map((r) => (
-          <button
-            key={r.value}
-            onClick={() => setRango(r.value)}
-            className={`rounded-pill border px-3.5 py-1.5 text-sm font-grotesk font-bold transition ${
-              rango === r.value ? 'border-transparent bg-brand-gradient text-white dark:bg-brand-gradient-premium' : 'border-light-border text-light-muted dark:border-dark-border dark:text-dark-muted'
-            }`}
-          >
-            {r.label}
-          </button>
-        ))}
+        <span className="text-sm font-grotesk font-bold text-light-muted dark:text-dark-muted">Mes:</span>
+        <select
+          value={periodo}
+          onChange={(e) => setPeriodo(e.target.value)}
+          className="field w-auto"
+          aria-label="Filtrar por mes"
+        >
+          {MESES.map((m) => (
+            <option key={m.value} value={m.value}>{m.label}</option>
+          ))}
+        </select>
       </div>
 
       {/* KPIs */}

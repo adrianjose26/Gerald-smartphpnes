@@ -6,7 +6,6 @@
 export const CURRENCIES = {
   DOP: { symbol: 'RD$', label: 'Peso dominicano (RD$)', locale: 'es-DO' },
   USD: { symbol: 'US$', label: 'Dólar estadounidense (US$)', locale: 'en-US' },
-  MXN: { symbol: 'MXN', label: 'Peso mexicano (MXN)', locale: 'es-MX' },
 }
 
 /** Formatea un número como moneda con el símbolo seleccionado. */
