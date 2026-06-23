@@ -66,7 +66,7 @@ export default function ProductDetail() {
                   <Badge state={st} />
                 </div>
                 <h2 className="mt-2 font-display text-2xl font-extrabold text-light-text dark:text-dark-text">{producto.nombre}</h2>
-                <p className="text-sm text-light-muted dark:text-dark-muted">{producto.proveedor ? `Proveedor: ${producto.proveedor}` : 'Sin proveedor'}</p>
+                <p className="text-sm text-light-muted dark:text-dark-muted">{producto.compradorNombre ? `Comprado por: ${producto.compradorNombre}` : 'Sin comprador asignado'}</p>
               </div>
               <div className="flex gap-2">
                 <button className="btn-ghost" onClick={() => setEditOpen(true)}><Pencil size={16} /> Editar</button>

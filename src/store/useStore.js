@@ -141,6 +141,9 @@ export const useStore = create((set, get) => ({
       proveedor: data.proveedor || '',
       estado: 'activo', // 'activo' (disponible) | 'vendido'
       cantidad: Math.max(0, parseInt(data.cantidad, 10) || 1), // existencia (1 por defecto)
+      // cliente que compró el producto (del directorio de contactos)
+      compradorId: data.compradorId || '',
+      compradorNombre: data.compradorId ? get().clienteById(data.compradorId)?.nombre || '' : data.compradorNombre || '',
       nuevoUsado: data.nuevoUsado || 'nuevo', // condición: nuevo | usado
       capacidad: data.capacidad || '',
       imei: data.imei || '',
@@ -170,6 +173,10 @@ export const useStore = create((set, get) => ({
           precioCompra: Number(patch.precioCompra ?? p.precioCompra) || 0,
           precioVenta: Number(patch.precioVenta ?? p.precioVenta) || 0,
           nuevoUsado: patch.nuevoUsado || p.nuevoUsado || 'nuevo',
+          compradorNombre:
+            patch.compradorId !== undefined
+              ? get().clienteById(patch.compradorId)?.nombre || ''
+              : p.compradorNombre || '',
           cantidad,
           // el estado sigue a la existencia
           estado: cantidad > 0 ? 'activo' : 'vendido',
@@ -349,6 +356,9 @@ export const useStore = create((set, get) => ({
                 cantidad: restante,
                 estado: restante > 0 ? 'activo' : 'vendido',
                 soldAt: restante > 0 ? null : p.soldAt || new Date().toISOString(),
+                // registra en el producto quién lo compró
+                compradorId: factura.clienteId || p.compradorId || '',
+                compradorNombre: factura.clienteNombre || p.compradorNombre || '',
               }
             : p
         ),

@@ -4,17 +4,20 @@ import Modal from './ui/Modal'
 import { useStore } from '../store/useStore'
 import { COND_OPTIONS, COND_LABEL, COND_COLORS } from '../lib/stock'
 import RedSelect from './ui/RedSelect'
+import SearchableSelect from './ui/SearchableSelect'
 
 const EMPTY = {
   nombre: '', categoriaId: '',
   precioCompra: '', precioVenta: '',
   cantidad: 1,
+  compradorId: '',
   nuevoUsado: 'nuevo',
   capacidad: '', imei: '', red: '',
 }
 
 export default function ProductForm({ open, onClose, producto }) {
   const categorias = useStore((s) => s.categorias)
+  const clientes = useStore((s) => s.clientes)
   const addProducto = useStore((s) => s.addProducto)
   const updateProducto = useStore((s) => s.updateProducto)
   const addCategoria = useStore((s) => s.addCategoria)
@@ -137,6 +140,19 @@ export default function ProductForm({ open, onClose, producto }) {
               )
             })}
           </div>
+        </div>
+
+        {/* Comprado por (cliente del directorio) */}
+        <div>
+          <label className="label" htmlFor="p-comprador">Comprado por (cliente)</label>
+          <SearchableSelect
+            id="p-comprador"
+            value={form.compradorId}
+            onChange={(v) => setForm((f) => ({ ...f, compradorId: v }))}
+            options={[{ value: '', label: 'Sin asignar' }, ...clientes.map((c) => ({ value: c.id, label: c.nombre, sublabel: c.telefono }))]}
+            placeholder="Elegir cliente del directorio…"
+          />
+          <p className="mt-1.5 text-xs text-light-muted dark:text-dark-muted">Opcional. También se asigna solo al facturar.</p>
         </div>
 
         {/* Datos del equipo */}
