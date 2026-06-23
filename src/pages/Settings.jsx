@@ -151,7 +151,7 @@ export default function Settings() {
         <div className="card p-5">
           <h3 className="mb-3 font-display text-base font-bold text-light-text dark:text-dark-text">Negocio</h3>
           <p className="font-display text-xl font-extrabold text-light-text dark:text-dark-text">Ventura Smart Phone</p>
-          <p className="mt-1 flex items-center gap-2 text-sm text-light-muted dark:text-dark-muted"><Phone size={14} /> 809.986.1389</p>
+          <p className="mt-1 flex items-center gap-2 text-sm text-light-muted dark:text-dark-muted"><Phone size={14} /> 809-986-1389</p>
           <p className="mt-1 text-sm font-grotesk font-bold tracking-widest text-brand-orange">@VENTURASMARTPHONE</p>
         </div>
 

@@ -46,7 +46,7 @@ export default function Sidebar() {
 
       <div className="mt-4 rounded-card bg-white/5 p-4 ring-1 ring-white/10">
         <p className="font-display text-sm font-bold">¿Necesitas ayuda?</p>
-        <p className="mt-1 text-xs text-white/60">Contáctanos al 809.986.1389</p>
+        <p className="mt-1 text-xs text-white/60">Contáctanos al 809-986-1389</p>
         <p className="mt-2 text-[11px] font-grotesk font-bold tracking-widest text-brand-orange">
           @VENTURASMARTPHONE
         </p>

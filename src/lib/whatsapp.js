@@ -26,7 +26,7 @@ export function invoiceMessage(invoice, currency = 'DOP') {
     `*Precio:* ${money(invoice.precio, currency)}`,
     '',
     '30 días de garantía. ¡Gracias por tu compra!',
-    '@VENTURASMARTPHONE · 809.986.1389',
+    '@VENTURASMARTPHONE · 809-986-1389',
   ].filter(Boolean)
   return lines.join('\n')
 }

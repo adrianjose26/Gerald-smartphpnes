@@ -8,5 +8,5 @@ export const GARANTIA_DEFAULT =
 
 export const NEGOCIO = {
   handle: '@VENTURASMARTPHONE',
-  telefono: '809.986.1389',
+  telefono: '809-986-1389',
 }

@@ -91,7 +91,7 @@ export default function Directory() {
       {/* Pie con wordmark */}
       <div className="flex flex-col items-center gap-1 py-2 text-center">
         <Logo variant="wordmark" className="items-center" />
-        <p className="text-[11px] text-light-muted dark:text-dark-muted">809.986.1389</p>
+        <p className="text-[11px] text-light-muted dark:text-dark-muted">809-986-1389</p>
       </div>
 
       <CustomerForm open={formOpen} onClose={() => setFormOpen(false)} />
