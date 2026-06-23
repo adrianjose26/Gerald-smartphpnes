@@ -315,7 +315,7 @@ export const useStore = create((set, get) => ({
       // fecha editable desde el editor; si no, la actual
       fecha: data.fecha || new Date().toISOString(),
       clienteId: data.clienteId || null,
-      clienteNombre: data.clienteNombre || cliente?.nombre || 'Cliente genérico',
+      clienteNombre: data.clienteNombre || cliente?.nombre || 'Cliente final',
       clienteTelefono: data.clienteTelefono || cliente?.telefono || '',
       productoId: data.productoId || null,
       equipo: data.equipo || '',

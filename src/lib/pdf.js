@@ -78,3 +78,24 @@ export async function invoiceToPdf(node, filename = 'factura.pdf') {
   downloadBlob(blob, filename)
   return blob
 }
+
+/**
+ * Genera una IMAGEN (JPG) de la factura, sin descargarla.
+ * Ideal para enviar por WhatsApp (se ve en el chat al instante).
+ * @returns {Promise<{ blob: Blob, file: File, filename: string }>}
+ */
+export async function invoiceToImageBlob(node, filename = 'factura.jpg') {
+  if (!node) throw new Error('No hay documento que exportar')
+  const { default: html2canvas } = await import('html2canvas')
+  const canvas = await html2canvas(node, { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false })
+  const blob = await new Promise((res) => canvas.toBlob(res, 'image/jpeg', 0.95))
+  const file = new File([blob], filename, { type: 'image/jpeg' })
+  return { blob, file, filename }
+}
+
+/** Conveniencia: genera la imagen JPG y la descarga. */
+export async function invoiceToImage(node, filename = 'factura.jpg') {
+  const { blob } = await invoiceToImageBlob(node, filename)
+  downloadBlob(blob, filename)
+  return blob
+}

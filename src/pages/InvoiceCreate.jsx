@@ -94,7 +94,7 @@ export default function InvoiceCreate() {
       ...f,
       generico: on,
       clienteId: on ? '' : f.clienteId,
-      clienteNombre: on ? 'Cliente genérico' : '',
+      clienteNombre: on ? 'Cliente final' : '',
       clienteTelefono: on ? '' : f.clienteTelefono,
     }))
   }
@@ -103,7 +103,7 @@ export default function InvoiceCreate() {
   const previewInvoice = committed || {
     numero: 'Borrador',
     fecha: toISO(form.fecha),
-    clienteNombre: form.generico ? 'Cliente genérico' : form.clienteNombre,
+    clienteNombre: form.generico ? 'Cliente final' : form.clienteNombre,
     equipo: form.equipo,
     capacidad: form.capacidad,
     imei: form.imei,
@@ -116,7 +116,7 @@ export default function InvoiceCreate() {
   function validar() {
     if (!form.equipo.trim()) { notify('Indica el equipo a facturar', 'warning'); return false }
     if (!(Number(form.precio) > 0)) { notify('Indica el precio de venta', 'warning'); return false }
-    if (!form.generico && !form.clienteNombre.trim()) { notify('Elige un cliente o activa "Cliente genérico"', 'warning'); return false }
+    if (!form.generico && !form.clienteNombre.trim()) { notify('Elige un cliente o activa "Cliente final"', 'warning'); return false }
     return true
   }
 
@@ -129,7 +129,7 @@ export default function InvoiceCreate() {
     const factura = generarFactura({
       productoId: form.productoId || null,
       clienteId: form.generico ? null : form.clienteId || null,
-      clienteNombre: form.generico ? 'Cliente genérico' : form.clienteNombre,
+      clienteNombre: form.generico ? 'Cliente final' : form.clienteNombre,
       clienteTelefono: form.clienteTelefono,
       equipo: form.equipo,
       capacidad: form.capacidad,
@@ -149,7 +149,7 @@ export default function InvoiceCreate() {
       if (action === 'send') {
         const metodo = await enviarFacturaPorWhatsApp(previewRef.current, factura, currency)
         if (metodo === 'fallback') {
-          notify('PDF descargado · adjúntalo en el chat de WhatsApp', 'info')
+          notify('Imagen descargada · adjúntala en el chat de WhatsApp', 'info')
         }
       } else {
         await invoiceToPdf(previewRef.current, `Factura-${factura.numero}.pdf`)
@@ -195,7 +195,7 @@ export default function InvoiceCreate() {
             <div className="mb-3 flex items-center justify-between">
               <h3 className="font-display text-base font-bold text-light-text dark:text-dark-text">Cliente</h3>
               <label className="flex cursor-pointer items-center gap-2 text-sm font-grotesk font-bold text-light-muted dark:text-dark-muted">
-                <UserX size={16} /> Cliente genérico
+                <UserX size={16} /> Cliente final
                 <input type="checkbox" className="peer sr-only" checked={form.generico} onChange={(e) => toggleGenerico(e.target.checked)} />
                 <span className="relative h-6 w-11 rounded-full bg-light-border transition after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition after:content-[''] peer-checked:bg-brand-orange peer-checked:after:translate-x-5 dark:bg-dark-border" />
               </label>

@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Download, Send, Printer, CheckCircle2, FileText, Loader2 } from 'lucide-react'
+import { ArrowLeft, Download, Send, Printer, CheckCircle2, FileText, Loader2, ImageDown } from 'lucide-react'
 import { useStore } from '../store/useStore'
-import { invoiceToPdf } from '../lib/pdf'
+import { invoiceToPdf, invoiceToImage } from '../lib/pdf'
 import { enviarFacturaPorWhatsApp } from '../lib/sendInvoice'
 import PageShell from '../components/layout/PageShell'
 import InvoiceDocument from '../components/InvoiceDocument'
@@ -26,15 +26,16 @@ export default function InvoiceView() {
   }
 
   const descargar = () => invoiceToPdf(ref.current, `Factura-${factura.numero}.pdf`)
+  const descargarImg = () => invoiceToImage(ref.current, `Factura-${factura.numero}.jpg`)
   const enviar = async () => {
     if (sending) return
     setSending(true)
     try {
       const metodo = await enviarFacturaPorWhatsApp(ref.current, factura, currency)
-      if (metodo === 'fallback') notify('PDF descargado · adjúntalo en el chat de WhatsApp', 'info')
+      if (metodo === 'fallback') notify('Imagen descargada · adjúntala en el chat de WhatsApp', 'info')
     } catch (e) {
       console.error(e)
-      notify('No se pudo preparar el PDF', 'error')
+      notify('No se pudo preparar la imagen', 'error')
     } finally {
       setSending(false)
     }
@@ -64,8 +65,9 @@ export default function InvoiceView() {
         <div className="flex flex-col gap-2 lg:w-56 print:hidden">
           <button className="btn-primary w-full" onClick={enviar} disabled={sending}>
             {sending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-            {sending ? 'Preparando PDF…' : 'Enviar por WhatsApp'}
+            {sending ? 'Preparando imagen…' : 'Enviar por WhatsApp'}
           </button>
+          <button className="btn-ghost w-full" onClick={descargarImg}><ImageDown size={18} /> Descargar imagen (JPG)</button>
           <button className="btn-ghost w-full" onClick={descargar}><Download size={18} /> Descargar PDF</button>
           <button className="btn-ghost w-full" onClick={() => window.print()}><Printer size={18} /> Imprimir</button>
           <Link to="/facturar" className="btn-ghost w-full"><FileText size={18} /> Nueva factura</Link>

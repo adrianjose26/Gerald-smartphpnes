@@ -18,7 +18,7 @@ export function invoiceMessage(invoice, currency = 'DOP') {
     '_Factura de venta_',
     '',
     `*Fecha:* ${fmtInvoiceDate(invoice.fecha)}`,
-    `*Cliente:* ${invoice.clienteNombre || 'Cliente genérico'}`,
+    `*Cliente:* ${invoice.clienteNombre || 'Cliente final'}`,
     `*Equipo:* ${invoice.equipo || '-'}`,
     invoice.capacidad ? `*Capacidad:* ${invoice.capacidad}` : null,
     invoice.red ? `*Red:* ${invoice.red}` : null,
@@ -40,12 +40,12 @@ export function shareInvoiceWhatsApp(invoice, phone, currency = 'DOP') {
 }
 
 /**
- * Intenta compartir el PDF como ARCHIVO usando la Web Share API (nivel 2).
- * En el celular abre la hoja de "Compartir": al elegir WhatsApp, el PDF
- * queda adjuntado en el chat. Devuelve true si se compartió (o el usuario
- * abrió la hoja), false si el navegador no soporta compartir archivos.
+ * Intenta compartir un ARCHIVO (imagen o PDF) usando la Web Share API
+ * (nivel 2). En el celular abre la hoja de "Compartir": al elegir WhatsApp,
+ * el archivo queda adjuntado en el chat. Devuelve true si se compartió (o el
+ * usuario abrió la hoja), false si el navegador no soporta compartir archivos.
  */
-export async function sharePdfFile(file, text) {
+export async function shareFile(file, text) {
   try {
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       await navigator.share({ files: [file], text, title: 'Factura · Ventura Smart Phone' })
