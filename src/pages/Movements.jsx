@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, ArrowDownToLine, ArrowUpFromLine, History, Trash2, X, CheckSquare, Square } from 'lucide-react'
+import { Search, ArrowDownToLine, ArrowUpFromLine, History, Trash2, X, CheckSquare, Square, Pencil } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import { fmtDateTime } from '../lib/format'
 import PageShell from '../components/layout/PageShell'
 import ProductThumb from '../components/ui/ProductThumb'
 import EmptyState from '../components/ui/EmptyState'
 import Modal from '../components/ui/Modal'
+import ProductForm from '../components/ProductForm'
 
 // Historial automático: alta de productos (entrada) y ventas (salida).
 const TIPO_META = {
@@ -31,6 +32,7 @@ export default function Movements() {
   const [selectMode, setSelectMode] = useState(false)
   const [selected, setSelected] = useState(() => new Set())
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [editProducto, setEditProducto] = useState(null)
 
   const lista = useMemo(() => {
     const needle = q.trim().toLowerCase()
@@ -133,6 +135,16 @@ export default function Movements() {
                   )}
                   <p className="truncate text-xs text-light-muted dark:text-dark-muted">{m.motivo || meta.label} · {fmtDateTime(m.fecha)}</p>
                 </div>
+                {!selectMode && p && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setEditProducto(p) }}
+                    className="shrink-0 rounded-lg p-2 text-light-muted transition hover:bg-light-bg2 dark:text-dark-muted dark:hover:bg-dark-border"
+                    aria-label="Editar producto"
+                    title="Editar producto"
+                  >
+                    <Pencil size={16} />
+                  </button>
+                )}
                 <span className="rounded-pill px-2.5 py-1 text-xs font-grotesk font-bold" style={{ backgroundColor: `${meta.color}1A`, color: meta.color }}>
                   {meta.label}
                 </span>
@@ -152,6 +164,9 @@ export default function Movements() {
           <button className="btn-primary !bg-none !bg-brand-red" onClick={confirmarBorrado}>Eliminar</button>
         </div>
       </Modal>
+
+      {/* Editar el producto del registro */}
+      <ProductForm open={Boolean(editProducto)} producto={editProducto} onClose={() => setEditProducto(null)} />
     </PageShell>
   )
 }
