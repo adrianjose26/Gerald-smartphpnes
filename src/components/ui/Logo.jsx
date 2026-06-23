@@ -40,7 +40,7 @@ export default function Logo({ variant = 'full', className = '', light = false, 
         VENTURA
       </span>
       <span className="font-grotesk text-[11px] font-bold tracking-[0.18em] text-brand-orange">
-        SMART PHONE
+        SMARTPHONE
       </span>
     </span>
   )
