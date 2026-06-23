@@ -1,8 +1,7 @@
 // =========================================================
 //  Producto = 1 unidad única (tienda pequeña, una persona).
-//  Ya no se controla cantidad: el producto está DISPONIBLE o VENDIDO.
-//  El antiguo "estado de stock" se reemplaza por el GRADO del equipo
-//  (Tipo A / B / C).
+//  El producto está DISPONIBLE o VENDIDO, y tiene una condición
+//  física: NUEVO o USADO (badge principal).
 //  Se conservan helpers de movimientos solo para el HISTORIAL.
 // =========================================================
 
@@ -13,10 +12,10 @@ export function movementDelta(mov) {
   return mov.cantidad
 }
 
-// ---- Grado / condición del producto (Tipo A / B / C) ----
-export const TIPO_OPTIONS = ['A', 'B', 'C']
-export const TIPO_COLORS = { A: '#16A34A', B: '#D97706', C: '#E11D48' }
-export const TIPO_LABEL = { A: 'Tipo A', B: 'Tipo B', C: 'Tipo C' }
+// ---- Condición del producto: Nuevo / Usado ----
+export const COND_OPTIONS = ['nuevo', 'usado']
+export const COND_LABEL = { nuevo: 'Nuevo', usado: 'Usado' }
+export const COND_COLORS = { nuevo: '#16A34A', usado: '#D97706' }
 
 /** ¿El producto está disponible (no vendido)? */
 export function isDisponible(product) {
@@ -26,11 +25,11 @@ export function isDisponible(product) {
 /**
  * Etiqueta principal del producto para badges:
  *  - 'Vendido' si ya se facturó
- *  - su grado (Tipo A / B / C) si está disponible
+ *  - 'Nuevo' / 'Usado' si está disponible
  * Devuelve { key, label, color } compatible con <Badge />.
  */
 export function productBadge(product) {
   if (product?.estado === 'vendido') return { key: 'sold', label: 'Vendido', color: '#1F2735' }
-  const t = product?.tipo || 'A'
-  return { key: t, label: TIPO_LABEL[t] || `Tipo ${t}`, color: TIPO_COLORS[t] || '#687284' }
+  const c = product?.nuevoUsado || 'nuevo'
+  return { key: c, label: COND_LABEL[c] || 'Nuevo', color: COND_COLORS[c] || '#16A34A' }
 }

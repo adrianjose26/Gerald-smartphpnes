@@ -14,7 +14,14 @@ import { generateSku } from '../lib/sku'
 const TABLES = ['categorias', 'productos', 'clientes', 'movimientos', 'facturas', 'settings']
 
 // autoDeleteDays: días tras la venta para eliminar el producto (0 = nunca)
-const DEFAULT_SETTINGS = { currency: 'DOP', theme: 'light', invoiceCounter: 1, autoDeleteDays: 2 }
+// redes: opciones del campo "Red" (editables; se pueden añadir nuevas)
+const DEFAULT_SETTINGS = {
+  currency: 'DOP',
+  theme: 'light',
+  invoiceCounter: 1,
+  autoDeleteDays: 2,
+  redes: ['Factory Unlocked', 'Locked', 'Claro', 'Altice'],
+}
 
 export const useStore = create((set, get) => ({
   // ---- estado ----
@@ -133,11 +140,10 @@ export const useStore = create((set, get) => ({
       precioVenta: Number(data.precioVenta) || 0,
       proveedor: data.proveedor || '',
       estado: 'activo', // 'activo' (disponible) | 'vendido'
-      tipo: data.tipo || 'A', // grado: A | B | C
+      nuevoUsado: data.nuevoUsado || 'nuevo', // condición: nuevo | usado
       capacidad: data.capacidad || '',
       imei: data.imei || '',
       red: data.red || '',
-      condicion: data.condicion || '',
       createdAt: new Date().toISOString(),
     }
     set((s) => ({ productos: [prod, ...s.productos] }))
@@ -161,7 +167,7 @@ export const useStore = create((set, get) => ({
               sku: (patch.sku || '').trim() || p.sku || generateSku(cat?.nombre),
               precioCompra: Number(patch.precioCompra ?? p.precioCompra) || 0,
               precioVenta: Number(patch.precioVenta ?? p.precioVenta) || 0,
-              tipo: patch.tipo || p.tipo || 'A',
+              nuevoUsado: patch.nuevoUsado || p.nuevoUsado || 'nuevo',
             }
           : p
       ),
@@ -197,6 +203,15 @@ export const useStore = create((set, get) => ({
     set((s) => ({ movimientos: [mov, ...s.movimientos] }))
     get()._persist('movimientos')
     return mov
+  },
+
+  // Elimina varios registros del historial por id.
+  deleteMovimientos(ids = []) {
+    if (!ids.length) return
+    const idset = new Set(ids)
+    set((s) => ({ movimientos: s.movimientos.filter((m) => !idset.has(m.id)) }))
+    get()._persist('movimientos')
+    get().notify(`${ids.length} registro${ids.length === 1 ? '' : 's'} eliminado${ids.length === 1 ? '' : 's'} del historial`)
   },
 
   updateProductoEstado(id, estado, silent = false) {
@@ -285,7 +300,8 @@ export const useStore = create((set, get) => ({
     const factura = {
       id: uid(),
       numero,
-      fecha: new Date().toISOString(),
+      // fecha editable desde el editor; si no, la actual
+      fecha: data.fecha || new Date().toISOString(),
       clienteId: data.clienteId || null,
       clienteNombre: data.clienteNombre || cliente?.nombre || 'Cliente genérico',
       clienteTelefono: data.clienteTelefono || cliente?.telefono || '',
@@ -295,7 +311,6 @@ export const useStore = create((set, get) => ({
       imei: data.imei || '',
       red: data.red || '',
       precio: Number(data.precio) || 0,
-      condicion: data.condicion || 'factory',
       nota: data.nota || '',
       garantia: data.garantia || '',
       estado: 'emitida',
@@ -336,6 +351,17 @@ export const useStore = create((set, get) => ({
     set((s) => ({ settings: { ...s.settings, autoDeleteDays: Number(dias) } }))
     get()._persist('settings')
     get().purgeSoldProducts() // aplica el nuevo período de inmediato
+  },
+  // Añade una opción nueva al campo "Red" (si no existe).
+  addRed(value) {
+    const v = String(value || '').trim()
+    if (!v) return
+    set((s) => {
+      const redes = s.settings.redes || []
+      if (redes.some((r) => r.toLowerCase() === v.toLowerCase())) return {}
+      return { settings: { ...s.settings, redes: [...redes, v] } }
+    })
+    get()._persist('settings')
   },
   setTheme(theme) {
     set((s) => ({ settings: { ...s.settings, theme } }))

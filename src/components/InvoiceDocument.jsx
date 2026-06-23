@@ -17,21 +17,6 @@ const Field = ({ label, value }) => (
   </div>
 )
 
-const Check = ({ checked, label }) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-    <span
-      style={{
-        width: 18, height: 18, borderRadius: 4, border: `2px solid ${NAVY}`,
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        background: checked ? NAVY : 'transparent', color: '#fff', fontSize: 12, fontWeight: 800, lineHeight: 1,
-      }}
-    >
-      {checked ? '✓' : ''}
-    </span>
-    <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', color: TEXT }}>{label}</span>
-  </div>
-)
-
 const InvoiceDocument = forwardRef(function InvoiceDocument({ invoice, currency = 'DOP' }, ref) {
   const inv = invoice || {}
   return (
@@ -75,11 +60,8 @@ const InvoiceDocument = forwardRef(function InvoiceDocument({ invoice, currency 
           <Field label="IMEI · Serial" value={inv.imei} />
         </div>
 
-        {/* Checks de condición */}
-        <div style={{ display: 'flex', gap: 28, margin: '22px 0', paddingTop: 16, borderTop: '1px solid #E6EAF0' }}>
-          <Check checked={inv.condicion === 'factory'} label="FACTORY UNLOCKED" />
-          <Check checked={inv.condicion === 'semi'} label="SEMI-FACTORY" />
-        </div>
+        {/* Separador */}
+        <div style={{ margin: '22px 0', borderTop: '1px solid #E6EAF0' }} />
 
         {/* Nota */}
         <div style={{ marginBottom: 16 }}>

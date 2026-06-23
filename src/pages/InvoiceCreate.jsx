@@ -1,12 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { Send, Download, UserX, Eye, Loader2 } from 'lucide-react'
+import { Send, Download, UserX, Eye, Loader2, CalendarDays } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import { NOTA_DEFAULT, GARANTIA_DEFAULT } from '../lib/invoiceText'
 import { invoiceToPdf } from '../lib/pdf'
 import { enviarFacturaPorWhatsApp } from '../lib/sendInvoice'
 import PageShell from '../components/layout/PageShell'
 import InvoiceDocument from '../components/InvoiceDocument'
+import SearchableSelect from '../components/ui/SearchableSelect'
+import RedSelect from '../components/ui/RedSelect'
+
+// Fecha de hoy en formato del input date (YYYY-MM-DD)
+const hoy = () => new Date().toISOString().slice(0, 10)
+// Convierte 'YYYY-MM-DD' a ISO (mediodía local para evitar saltos de día)
+const toISO = (d) => (d ? new Date(d + 'T12:00:00').toISOString() : new Date().toISOString())
 
 export default function InvoiceCreate() {
   const productos = useStore((s) => s.productos)
@@ -33,7 +40,7 @@ export default function InvoiceCreate() {
     imei: '',
     red: '',
     precio: '',
-    condicion: 'factory',
+    fecha: hoy(),
     nota: NOTA_DEFAULT,
     garantia: GARANTIA_DEFAULT,
   })
@@ -66,7 +73,6 @@ export default function InvoiceCreate() {
       imei: p.imei || '',
       red: p.red || '',
       precio: p.precioVenta || '',
-      condicion: p.condicion || f.condicion || 'factory',
     }))
   }
 
@@ -95,14 +101,13 @@ export default function InvoiceCreate() {
   // Objeto que alimenta la vista previa (o la factura ya emitida)
   const previewInvoice = committed || {
     numero: 'Borrador',
-    fecha: new Date().toISOString(),
+    fecha: toISO(form.fecha),
     clienteNombre: form.generico ? 'Cliente genérico' : form.clienteNombre,
     equipo: form.equipo,
     capacidad: form.capacidad,
     imei: form.imei,
     red: form.red,
     precio: Number(form.precio) || 0,
-    condicion: form.condicion,
     nota: form.nota,
     garantia: form.garantia,
   }
@@ -130,7 +135,7 @@ export default function InvoiceCreate() {
       imei: form.imei,
       red: form.red,
       precio: Number(form.precio) || 0,
-      condicion: form.condicion,
+      fecha: toISO(form.fecha),
       nota: form.nota,
       garantia: form.garantia,
     })
@@ -160,6 +165,18 @@ export default function InvoiceCreate() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* ============ EDITOR ============ */}
         <div className="space-y-5">
+          {/* Fecha de la factura */}
+          <section className="card p-5">
+            <h3 className="mb-3 font-display text-base font-bold text-light-text dark:text-dark-text">Fecha de la factura</h3>
+            <div className="flex items-center gap-2">
+              <input id="i-fecha" type="date" className="field" value={form.fecha} onChange={(e) => set('fecha', e.target.value)} />
+              <button type="button" className="btn-ghost shrink-0" onClick={() => set('fecha', hoy())}>
+                <CalendarDays size={16} /> Hoy
+              </button>
+            </div>
+            <p className="mt-1.5 text-xs text-light-muted dark:text-dark-muted">Por defecto es hoy; puedes cambiarla si la venta fue otro día.</p>
+          </section>
+
           {/* Producto */}
           <section className="card p-5">
             <h3 className="mb-3 font-display text-base font-bold text-light-text dark:text-dark-text">Producto del inventario</h3>
@@ -167,7 +184,7 @@ export default function InvoiceCreate() {
             <select id="i-prod" className="field" value={form.productoId} onChange={(e) => onProducto(e.target.value)}>
               <option value="">— Venta manual / sin inventario —</option>
               {disponibles.map((p) => (
-                <option key={p.id} value={p.id}>{p.nombre} · Tipo {p.tipo || 'A'}</option>
+                <option key={p.id} value={p.id}>{p.nombre}{p.capacidad ? ` · ${p.capacidad}` : ''}</option>
               ))}
             </select>
           </section>
@@ -187,10 +204,16 @@ export default function InvoiceCreate() {
               <div className="space-y-4">
                 <div>
                   <label className="label" htmlFor="i-cli">Elegir del directorio</label>
-                  <select id="i-cli" className="field" value={form.clienteId} onChange={(e) => onCliente(e.target.value)}>
-                    <option value="">— Sin seleccionar —</option>
-                    {clientes.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-                  </select>
+                  <SearchableSelect
+                    id="i-cli"
+                    value={form.clienteId}
+                    onChange={(v) => (v ? onCliente(v) : setForm((f) => ({ ...f, clienteId: '', clienteNombre: '', clienteTelefono: '' })))}
+                    placeholder="Buscar cliente…"
+                    options={[
+                      { value: '', label: '— Sin seleccionar —' },
+                      ...clientes.map((c) => ({ value: c.id, label: c.nombre, sublabel: c.telefono })),
+                    ]}
+                  />
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
@@ -224,32 +247,11 @@ export default function InvoiceCreate() {
               </div>
               <div>
                 <label className="label" htmlFor="i-red">Red</label>
-                <input id="i-red" className="field" value={form.red} onChange={(e) => set('red', e.target.value)} placeholder="Liberado" />
+                <RedSelect id="i-red" value={form.red} onChange={(v) => set('red', v)} />
               </div>
               <div>
                 <label className="label" htmlFor="i-imei">IMEI / Serial</label>
                 <input id="i-imei" className="field" value={form.imei} onChange={(e) => set('imei', e.target.value)} />
-              </div>
-            </div>
-
-            {/* Condición */}
-            <div className="mt-4">
-              <span className="label">Condición</span>
-              <div className="grid grid-cols-2 gap-2">
-                {[{ v: 'factory', l: 'Factory Unlocked' }, { v: 'semi', l: 'Semi-Factory' }].map((opt) => (
-                  <button
-                    key={opt.v}
-                    type="button"
-                    onClick={() => set('condicion', opt.v)}
-                    className={`rounded-xl border px-4 py-3 text-sm font-grotesk font-bold transition ${
-                      form.condicion === opt.v
-                        ? 'border-transparent bg-brand-gradient text-white dark:bg-brand-gradient-premium'
-                        : 'border-light-border text-light-muted dark:border-dark-border dark:text-dark-muted'
-                    }`}
-                  >
-                    {opt.l}
-                  </button>
-                ))}
               </div>
             </div>
           </section>

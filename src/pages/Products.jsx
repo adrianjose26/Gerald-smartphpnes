@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { Search, Plus, Download, LayoutGrid, List, Pencil, Trash2 } from 'lucide-react'
 import { useStore } from '../store/useStore'
-import { productBadge } from '../lib/stock'
+import { productBadge, COND_LABEL } from '../lib/stock'
 import { money } from '../lib/format'
 import PageShell from '../components/layout/PageShell'
 import ProductForm from '../components/ProductForm'
@@ -59,11 +59,11 @@ export default function Products() {
 
   // Exportar a CSV
   const exportCsv = () => {
-    const headers = ['Nombre', 'SKU', 'Categoria', 'Tipo', 'Precio compra', 'Precio venta', 'Estado']
+    const headers = ['Nombre', 'SKU', 'Categoria', 'Condicion', 'Precio compra', 'Precio venta', 'Estado']
     const rows = filtered.map((p) => {
       const c = categoriaById(p.categoriaId)
       const estado = p.estado === 'vendido' ? 'Vendido' : 'Disponible'
-      return [p.nombre, p.sku, c?.nombre || '', `Tipo ${p.tipo || 'A'}`, p.precioCompra, p.precioVenta, estado]
+      return [p.nombre, p.sku, c?.nombre || '', COND_LABEL[p.nuevoUsado] || 'Nuevo', p.precioCompra, p.precioVenta, estado]
     })
     const csv = [headers, ...rows].map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })

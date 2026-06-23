@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Pencil, ArrowDownToLine, ArrowUpFromLine, FileText } from 'lucide-react'
 import { useStore } from '../store/useStore'
-import { productBadge, isDisponible } from '../lib/stock'
+import { productBadge, isDisponible, COND_LABEL } from '../lib/stock'
 import { money, fmtDateTime } from '../lib/format'
 import PageShell from '../components/layout/PageShell'
 import ProductThumb from '../components/ui/ProductThumb'
@@ -43,7 +43,6 @@ export default function ProductDetail() {
     ['Capacidad', producto.capacidad],
     ['IMEI / Serial', producto.imei],
     ['Red', producto.red],
-    ['Condición', producto.condicion === 'factory' ? 'Factory Unlocked' : producto.condicion === 'semi' ? 'Semi-Factory' : ''],
   ].filter(([, v]) => v)
 
   const ganancia = producto.precioVenta - producto.precioCompra
@@ -78,7 +77,7 @@ export default function ProductDetail() {
 
             {/* Métricas */}
             <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <Metric label="Tipo / condición" value={`Tipo ${producto.tipo || 'A'}`} color={st.color} />
+              <Metric label="Condición" value={COND_LABEL[producto.nuevoUsado] || 'Nuevo'} color={st.color} />
               <Metric label="Estado" value={disponible ? 'Disponible' : 'Vendido'} color={disponible ? '#16A34A' : '#1F2735'} />
               <Metric label="Precio venta" value={money(producto.precioVenta, currency)} />
               <Metric label="Precio compra" value={money(producto.precioCompra, currency)} />

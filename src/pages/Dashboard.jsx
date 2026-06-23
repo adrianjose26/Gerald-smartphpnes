@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Package, Boxes, PackageCheck, Plus, ChevronDown, FileText, ChevronRight } from 'lucide-react'
 import { useStore } from '../store/useStore'
+import { COND_LABEL } from '../lib/stock'
 import { money } from '../lib/format'
 import PageShell from '../components/layout/PageShell'
 import StatCard from '../components/ui/StatCard'
@@ -116,7 +117,7 @@ export default function Dashboard() {
                       <ProductThumb producto={p} categoria={c} size={38} />
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-grotesk font-bold text-light-text dark:text-dark-text">{p.nombre}</p>
-                        <p className="truncate text-xs text-light-muted dark:text-dark-muted">{c?.nombre || 'Sin categoría'} · Tipo {p.tipo || 'A'}</p>
+                        <p className="truncate text-xs text-light-muted dark:text-dark-muted">{c?.nombre || 'Sin categoría'} · {COND_LABEL[p.nuevoUsado] || 'Nuevo'}</p>
                       </div>
                       <span className="font-display font-extrabold text-light-text dark:text-dark-text">{money(p.precioVenta, currency)}</span>
                     </Link>

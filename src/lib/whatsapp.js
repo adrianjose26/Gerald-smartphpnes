@@ -23,7 +23,6 @@ export function invoiceMessage(invoice, currency = 'DOP') {
     invoice.capacidad ? `*Capacidad:* ${invoice.capacidad}` : null,
     invoice.red ? `*Red:* ${invoice.red}` : null,
     invoice.imei ? `*IMEI/Serial:* ${invoice.imei}` : null,
-    `*Condición:* ${invoice.condicion === 'semi' ? 'Semi-Factory' : 'Factory Unlocked'}`,
     `*Precio:* ${money(invoice.precio, currency)}`,
     '',
     '30 días de garantía. ¡Gracias por tu compra!',
