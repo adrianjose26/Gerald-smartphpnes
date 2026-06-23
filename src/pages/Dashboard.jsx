@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Package, Boxes, PackageCheck, Plus, ChevronDown, FileText, ChevronRight } from 'lucide-react'
 import { useStore } from '../store/useStore'
-import { COND_LABEL } from '../lib/stock'
+import { COND_LABEL, cantidadDe } from '../lib/stock'
 import { money } from '../lib/format'
 import PageShell from '../components/layout/PageShell'
 import StatCard from '../components/ui/StatCard'
@@ -21,19 +21,22 @@ export default function Dashboard() {
   // Métricas (cada producto = 1 unidad; disponible si no está vendido)
   const m = useMemo(() => {
     let valor = 0
-    let disponibles = 0
+    let disponibles = 0 // productos (filas) disponibles
+    let unidades = 0 // unidades totales disponibles
     let vendidos = 0
     const porCat = {}
     for (const p of productos) {
       if (p.estado !== 'vendido') {
+        const cant = cantidadDe(p)
         disponibles++
-        valor += p.precioVenta
+        unidades += cant
+        valor += cant * p.precioVenta
       } else {
         vendidos++
       }
       porCat[p.categoriaId] = (porCat[p.categoriaId] || 0) + 1
     }
-    return { valor, disponibles, vendidos, porCat }
+    return { valor, disponibles, unidades, vendidos, porCat }
   }, [productos])
 
   const total = productos.length || 1
@@ -69,7 +72,7 @@ export default function Dashboard() {
     <PageShell title="Inventario" subtitle="Resumen general" withDirectory actions={acciones}>
       {/* Tarjetas de resumen */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <StatCard icon={PackageCheck} label="Disponibles" value={m.disponibles} color="#16A34A" progress={(m.disponibles / total) * 100} hint="Listos para vender" />
+        <StatCard icon={PackageCheck} label="Disponibles" value={m.unidades} color="#16A34A" progress={(m.disponibles / total) * 100} hint={`${m.disponibles} producto${m.disponibles === 1 ? '' : 's'} · listos para vender`} />
         <StatCard icon={Boxes} label="Valor del inventario" value={money(m.valor, currency)} color="#FF6A00" progress={70} hint="Disponibles a precio de venta" />
       </div>
 
@@ -117,7 +120,7 @@ export default function Dashboard() {
                       <ProductThumb producto={p} categoria={c} size={38} />
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-grotesk font-bold text-light-text dark:text-dark-text">{p.nombre}</p>
-                        <p className="truncate text-xs text-light-muted dark:text-dark-muted">{c?.nombre || 'Sin categoría'} · {COND_LABEL[p.nuevoUsado] || 'Nuevo'}</p>
+                        <p className="truncate text-xs text-light-muted dark:text-dark-muted">{c?.nombre || 'Sin categoría'} · {COND_LABEL[p.nuevoUsado] || 'Nuevo'}{cantidadDe(p) > 1 ? ` · ×${cantidadDe(p)}` : ''}</p>
                       </div>
                       <span className="font-display font-extrabold text-light-text dark:text-dark-text">{money(p.precioVenta, currency)}</span>
                     </Link>

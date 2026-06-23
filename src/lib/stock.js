@@ -17,19 +17,27 @@ export const COND_OPTIONS = ['nuevo', 'usado']
 export const COND_LABEL = { nuevo: 'Nuevo', usado: 'Usado' }
 export const COND_COLORS = { nuevo: '#16A34A', usado: '#D97706' }
 
-/** ¿El producto está disponible (no vendido)? */
+/** Cantidad (existencia) de un producto, con 1 por defecto. */
+export function cantidadDe(product) {
+  const n = parseInt(product?.cantidad, 10)
+  return Number.isNaN(n) ? 1 : n
+}
+
+/** ¿El producto está disponible (hay existencia y no está vendido)? */
 export function isDisponible(product) {
-  return product?.estado !== 'vendido'
+  return product?.estado !== 'vendido' && cantidadDe(product) > 0
 }
 
 /**
  * Etiqueta principal del producto para badges:
- *  - 'Vendido' si ya se facturó
+ *  - 'Vendido' si ya se facturó / sin existencia
  *  - 'Nuevo' / 'Usado' si está disponible
  * Devuelve { key, label, color } compatible con <Badge />.
  */
 export function productBadge(product) {
-  if (product?.estado === 'vendido') return { key: 'sold', label: 'Vendido', color: '#1F2735' }
+  if (product?.estado === 'vendido' || cantidadDe(product) <= 0) {
+    return { key: 'sold', label: 'Vendido', color: '#1F2735' }
+  }
   const c = product?.nuevoUsado || 'nuevo'
   return { key: c, label: COND_LABEL[c] || 'Nuevo', color: COND_COLORS[c] || '#16A34A' }
 }

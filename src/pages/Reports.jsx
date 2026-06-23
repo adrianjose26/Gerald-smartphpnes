@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { TrendingUp, ShoppingCart, DollarSign, Receipt, Boxes, Trophy } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import { money, fmtDate } from '../lib/format'
-import { movementDelta } from '../lib/stock'
+import { movementDelta, cantidadDe } from '../lib/stock'
 import PageShell from '../components/layout/PageShell'
 import StatCard from '../components/ui/StatCard'
 import EmptyState from '../components/ui/EmptyState'
@@ -77,10 +77,10 @@ export default function Reports() {
     }
     const masVendidos = Object.values(conteo).sort((a, b) => b.unidades - a.unidades || b.total - a.total).slice(0, 6)
 
-    // Valor del inventario actual (productos disponibles, 1 unidad c/u)
+    // Valor del inventario actual (productos disponibles × cantidad)
     const valorInventario = productos
       .filter((p) => p.estado !== 'vendido')
-      .reduce((s, p) => s + p.precioVenta, 0)
+      .reduce((s, p) => s + cantidadDe(p) * p.precioVenta, 0)
 
     return { facturasRango, ventas, costoVentas, ganancia, compras, masVendidos, valorInventario, count: facturasRango.length }
   }, [facturas, productos, movimientos, desde, hasta]) // eslint-disable-line

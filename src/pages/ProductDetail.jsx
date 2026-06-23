@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Pencil, ArrowDownToLine, ArrowUpFromLine, FileText } from 'lucide-react'
 import { useStore } from '../store/useStore'
-import { productBadge, isDisponible, COND_LABEL } from '../lib/stock'
+import { productBadge, isDisponible, COND_LABEL, cantidadDe } from '../lib/stock'
 import { money, fmtDateTime } from '../lib/format'
 import PageShell from '../components/layout/PageShell'
 import ProductThumb from '../components/ui/ProductThumb'
@@ -45,6 +45,7 @@ export default function ProductDetail() {
     ['Red', producto.red],
   ].filter(([, v]) => v)
 
+  const cant = cantidadDe(producto)
   const ganancia = producto.precioVenta - producto.precioCompra
 
   return (
@@ -78,7 +79,7 @@ export default function ProductDetail() {
             {/* Métricas */}
             <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
               <Metric label="Condición" value={COND_LABEL[producto.nuevoUsado] || 'Nuevo'} color={st.color} />
-              <Metric label="Estado" value={disponible ? 'Disponible' : 'Vendido'} color={disponible ? '#16A34A' : '#1F2735'} />
+              <Metric label="Cantidad" value={`${cant} ${cant === 1 ? 'unidad' : 'unidades'}`} color={disponible ? '#16A34A' : '#1F2735'} />
               <Metric label="Precio venta" value={money(producto.precioVenta, currency)} />
               <Metric label="Precio compra" value={money(producto.precioCompra, currency)} />
             </div>
@@ -127,12 +128,12 @@ export default function ProductDetail() {
         {/* Columna lateral: valor */}
         <div className="space-y-5">
           <div className="card p-5">
-            <h3 className="font-display text-sm font-bold text-light-text dark:text-dark-text">Valor del producto</h3>
-            <p className="mt-2 font-display text-3xl font-extrabold text-brand-orange">{money(producto.precioVenta, currency)}</p>
-            <p className="mt-1 text-sm text-light-muted dark:text-dark-muted">Precio de venta</p>
+            <h3 className="font-display text-sm font-bold text-light-text dark:text-dark-text">Valor en inventario</h3>
+            <p className="mt-2 font-display text-3xl font-extrabold text-brand-orange">{money(cant * producto.precioVenta, currency)}</p>
+            <p className="mt-1 text-sm text-light-muted dark:text-dark-muted">{cant} × {money(producto.precioVenta, currency)}</p>
             <div className="mt-4 space-y-2 border-t border-light-border pt-4 text-sm dark:border-dark-border">
-              <Row label="Inversión (costo)" value={money(producto.precioCompra, currency)} />
-              <Row label="Ganancia" value={money(ganancia, currency)} accent />
+              <Row label="Inversión (costo)" value={money(cant * producto.precioCompra, currency)} />
+              <Row label="Ganancia" value={money(cant * ganancia, currency)} accent />
             </div>
           </div>
         </div>

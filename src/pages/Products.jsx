@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { Search, Plus, Download, LayoutGrid, List, Pencil, Trash2 } from 'lucide-react'
 import { useStore } from '../store/useStore'
-import { productBadge, COND_LABEL } from '../lib/stock'
+import { productBadge, COND_LABEL, cantidadDe } from '../lib/stock'
 import { money } from '../lib/format'
 import PageShell from '../components/layout/PageShell'
 import ProductForm from '../components/ProductForm'
@@ -59,11 +59,11 @@ export default function Products() {
 
   // Exportar a CSV
   const exportCsv = () => {
-    const headers = ['Nombre', 'SKU', 'Categoria', 'Condicion', 'Precio compra', 'Precio venta', 'Estado']
+    const headers = ['Nombre', 'SKU', 'Categoria', 'Condicion', 'Cantidad', 'Precio compra', 'Precio venta', 'Estado']
     const rows = filtered.map((p) => {
       const c = categoriaById(p.categoriaId)
       const estado = p.estado === 'vendido' ? 'Vendido' : 'Disponible'
-      return [p.nombre, p.sku, c?.nombre || '', COND_LABEL[p.nuevoUsado] || 'Nuevo', p.precioCompra, p.precioVenta, estado]
+      return [p.nombre, p.sku, c?.nombre || '', COND_LABEL[p.nuevoUsado] || 'Nuevo', cantidadDe(p), p.precioCompra, p.precioVenta, estado]
     })
     const csv = [headers, ...rows].map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
@@ -159,6 +159,9 @@ export default function Products() {
                 </div>
                 <div className="flex items-center justify-between">
                   <CategoryPill categoria={c} />
+                  {cantidadDe(p) > 1 && (
+                    <span className="rounded-pill bg-light-bg2 px-2 py-0.5 text-xs font-grotesk font-bold text-light-text dark:bg-dark-border dark:text-dark-text">×{cantidadDe(p)}</span>
+                  )}
                 </div>
                 <div className="flex items-end justify-between border-t border-light-border pt-3 dark:border-dark-border">
                   <div>
@@ -194,7 +197,8 @@ export default function Products() {
                     </div>
                     <Badge state={st} />
                   </div>
-                  <div className="mt-3 flex items-center justify-end border-t border-light-border pt-3 text-sm dark:border-dark-border">
+                  <div className="mt-3 flex items-center justify-between border-t border-light-border pt-3 text-sm dark:border-dark-border">
+                    <span className="text-light-muted dark:text-dark-muted">{cantidadDe(p) > 1 ? `${cantidadDe(p)} unidades` : '1 unidad'}</span>
                     <span className="font-display font-extrabold text-light-text dark:text-dark-text">{money(p.precioVenta, currency)}</span>
                   </div>
                 </div>
@@ -210,6 +214,7 @@ export default function Products() {
                   <tr className="border-b border-light-border text-left text-xs font-grotesk font-bold uppercase tracking-wide text-light-muted dark:border-dark-border dark:text-dark-muted">
                     <th className="px-4 py-3">Producto</th>
                     <th className="px-4 py-3">Categoría</th>
+                    <th className="px-4 py-3 text-center">Cant.</th>
                     <th className="px-4 py-3 text-right">Precio venta</th>
                     <th className="px-4 py-3 text-right">Precio compra</th>
                     <th className="px-4 py-3">Estado</th>
@@ -232,6 +237,7 @@ export default function Products() {
                           </div>
                         </td>
                         <td className="px-4 py-3"><CategoryPill categoria={c} /></td>
+                        <td className="px-4 py-3 text-center font-bold text-light-text dark:text-dark-text">{cantidadDe(p)}</td>
                         <td className="px-4 py-3 text-right font-semibold text-light-text dark:text-dark-text">{money(p.precioVenta, currency)}</td>
                         <td className="px-4 py-3 text-right text-light-muted dark:text-dark-muted">{money(p.precioCompra, currency)}</td>
                         <td className="px-4 py-3"><Badge state={st} /></td>

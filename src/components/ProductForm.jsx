@@ -8,6 +8,7 @@ import RedSelect from './ui/RedSelect'
 const EMPTY = {
   nombre: '', categoriaId: '',
   precioCompra: '', precioVenta: '',
+  cantidad: 1,
   nuevoUsado: 'nuevo',
   capacidad: '', imei: '', red: '',
 }
@@ -106,6 +107,13 @@ export default function ProductForm({ open, onClose, producto }) {
             <label className="label" htmlFor="p-pv">Precio venta</label>
             <input id="p-pv" type="number" min="0" step="0.01" className="field" value={form.precioVenta} onChange={set('precioVenta')} />
           </div>
+        </div>
+
+        {/* Cantidad */}
+        <div>
+          <label className="label" htmlFor="p-cant">Cantidad</label>
+          <input id="p-cant" type="number" min="0" step="1" className="field max-w-[160px]" value={form.cantidad} onChange={set('cantidad')} />
+          <p className="mt-1.5 text-xs text-light-muted dark:text-dark-muted">Cuántas unidades tienes de este mismo artículo (por defecto 1).</p>
         </div>
 
         {/* Nuevo / Usado */}

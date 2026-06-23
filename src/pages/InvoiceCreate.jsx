@@ -5,6 +5,7 @@ import { useStore } from '../store/useStore'
 import { NOTA_DEFAULT, GARANTIA_DEFAULT } from '../lib/invoiceText'
 import { invoiceToPdf } from '../lib/pdf'
 import { enviarFacturaPorWhatsApp } from '../lib/sendInvoice'
+import { cantidadDe } from '../lib/stock'
 import PageShell from '../components/layout/PageShell'
 import InvoiceDocument from '../components/InvoiceDocument'
 import SearchableSelect from '../components/ui/SearchableSelect'
@@ -184,7 +185,7 @@ export default function InvoiceCreate() {
             <select id="i-prod" className="field" value={form.productoId} onChange={(e) => onProducto(e.target.value)}>
               <option value="">— Venta manual / sin inventario —</option>
               {disponibles.map((p) => (
-                <option key={p.id} value={p.id}>{p.nombre}{p.capacidad ? ` · ${p.capacidad}` : ''}</option>
+                <option key={p.id} value={p.id}>{p.nombre}{p.capacidad ? ` · ${p.capacidad}` : ''}{cantidadDe(p) > 1 ? ` · ${cantidadDe(p)} disp.` : ''}</option>
               ))}
             </select>
           </section>

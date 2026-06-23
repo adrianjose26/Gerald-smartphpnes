@@ -140,6 +140,7 @@ export const useStore = create((set, get) => ({
       precioVenta: Number(data.precioVenta) || 0,
       proveedor: data.proveedor || '',
       estado: 'activo', // 'activo' (disponible) | 'vendido'
+      cantidad: Math.max(0, parseInt(data.cantidad, 10) || 1), // existencia (1 por defecto)
       nuevoUsado: data.nuevoUsado || 'nuevo', // condición: nuevo | usado
       capacidad: data.capacidad || '',
       imei: data.imei || '',
@@ -159,18 +160,22 @@ export const useStore = create((set, get) => ({
   updateProducto(id, patch) {
     const cat = get().categoriaById(patch.categoriaId)
     set((s) => ({
-      productos: s.productos.map((p) =>
-        p.id === id
-          ? {
-              ...p,
-              ...patch,
-              sku: (patch.sku || '').trim() || p.sku || generateSku(cat?.nombre),
-              precioCompra: Number(patch.precioCompra ?? p.precioCompra) || 0,
-              precioVenta: Number(patch.precioVenta ?? p.precioVenta) || 0,
-              nuevoUsado: patch.nuevoUsado || p.nuevoUsado || 'nuevo',
-            }
-          : p
-      ),
+      productos: s.productos.map((p) => {
+        if (p.id !== id) return p
+        const cantidad = patch.cantidad !== undefined ? Math.max(0, parseInt(patch.cantidad, 10) || 0) : (p.cantidad ?? 1)
+        return {
+          ...p,
+          ...patch,
+          sku: (patch.sku || '').trim() || p.sku || generateSku(cat?.nombre),
+          precioCompra: Number(patch.precioCompra ?? p.precioCompra) || 0,
+          precioVenta: Number(patch.precioVenta ?? p.precioVenta) || 0,
+          nuevoUsado: patch.nuevoUsado || p.nuevoUsado || 'nuevo',
+          cantidad,
+          // el estado sigue a la existencia
+          estado: cantidad > 0 ? 'activo' : 'vendido',
+          soldAt: cantidad > 0 ? null : p.soldAt || new Date().toISOString(),
+        }
+      }),
     }))
     get()._persist('productos')
     get().notify('Producto actualizado')
@@ -333,7 +338,22 @@ export const useStore = create((set, get) => ({
         motivo: 'Venta',
         referencia: factura.id,
       })
-      get().updateProductoEstado(data.productoId, 'vendido', true)
+      // baja la existencia en 1; si llega a 0, marca el producto como vendido
+      const prod = get().productoById(data.productoId)
+      const restante = Math.max(0, (prod?.cantidad ?? 1) - 1)
+      set((s) => ({
+        productos: s.productos.map((p) =>
+          p.id === data.productoId
+            ? {
+                ...p,
+                cantidad: restante,
+                estado: restante > 0 ? 'activo' : 'vendido',
+                soldAt: restante > 0 ? null : p.soldAt || new Date().toISOString(),
+              }
+            : p
+        ),
+      }))
+      get()._persist('productos')
     }
 
     get().notify(`Factura ${numero} generada · ${factura.equipo} vendido a ${factura.clienteNombre}`)
