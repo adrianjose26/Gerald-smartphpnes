@@ -7,7 +7,9 @@
 //  html2canvas y jsPDF se cargan de forma diferida (dynamic import).
 // =========================================================
 
-const FIXED_WIDTH = 720 // ancho del documento (igual al de escritorio)
+// Ancho fijo del documento al capturar. 556px → imagen de 1112px (scale 2),
+// que es el tamaño con el que sale correcta desde la PC.
+const FIXED_WIDTH = 556
 
 /** Espera a que todas las imágenes de un nodo terminen de cargar. */
 function waitForImages(node) {
@@ -25,13 +27,19 @@ function waitForImages(node) {
 }
 
 /**
- * Captura un nodo a un <canvas> con ANCHO FIJO, independientemente del
- * dispositivo: clona el nodo en un contenedor oculto de ancho fijo y
- * captura ese clon (así no importa lo angosta que sea la pantalla).
+ * Captura un nodo a un <canvas> con ANCHO FIJO (el de escritorio),
+ * independientemente del dispositivo: clona el nodo en un contenedor
+ * oculto de ancho fijo y captura ese clon. Espera a que carguen las
+ * fuentes e imágenes para que el resultado sea idéntico en PC y celular.
  */
 async function renderCanvas(node, width = FIXED_WIDTH) {
   if (!node) throw new Error('No hay documento que exportar')
   const { default: html2canvas } = await import('html2canvas')
+
+  // Asegura que las tipografías estén listas (si no, el texto cambia de tamaño)
+  if (document.fonts && document.fonts.ready) {
+    try { await document.fonts.ready } catch { /* ignorar */ }
+  }
 
   // Contenedor oculto de ancho fijo
   const wrapper = document.createElement('div')
@@ -39,13 +47,16 @@ async function renderCanvas(node, width = FIXED_WIDTH) {
     position: 'fixed',
     left: '-10000px',
     top: '0',
-    width: `${width + 24}px`,
+    width: `${width}px`,
     background: '#ffffff',
   })
 
   const clone = node.cloneNode(true)
+  clone.style.boxSizing = 'border-box' // ancho exacto (incluye el borde)
   clone.style.width = `${width}px`
   clone.style.maxWidth = `${width}px`
+  clone.style.margin = '0'
+  clone.style.boxShadow = 'none'
   wrapper.appendChild(clone)
   document.body.appendChild(wrapper)
 
@@ -56,7 +67,6 @@ async function renderCanvas(node, width = FIXED_WIDTH) {
       backgroundColor: '#ffffff',
       useCORS: true,
       logging: false,
-      windowWidth: width + 24,
     })
   } finally {
     document.body.removeChild(wrapper)
