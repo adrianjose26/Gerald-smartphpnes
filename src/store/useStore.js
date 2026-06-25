@@ -57,6 +57,39 @@ export const useStore = create((set, get) => ({
     get().purgeSoldProducts() // limpia vendidos con más de 2 días al arrancar
   },
 
+  // Recarga los datos desde la nube (para sincronizar entre dispositivos
+  // al volver a la app). No vuelve a sembrar.
+  async reload() {
+    const [categorias, productos, clientes, movimientos, facturas, settings] = await Promise.all(
+      TABLES.map((t) => read(t, t === 'settings' ? DEFAULT_SETTINGS : []))
+    )
+    set({
+      categorias,
+      productos,
+      clientes,
+      movimientos,
+      facturas,
+      settings: { ...DEFAULT_SETTINGS, ...settings },
+      ready: true,
+    })
+    get()._applyTheme()
+    get().purgeSoldProducts()
+  },
+
+  // Limpia el estado en memoria (al cerrar sesión).
+  resetState() {
+    set({
+      ready: false,
+      categorias: [],
+      productos: [],
+      clientes: [],
+      movimientos: [],
+      facturas: [],
+      settings: DEFAULT_SETTINGS,
+      toast: null,
+    })
+  },
+
   // persiste una tabla concreta
   async _persist(table) {
     await write(table, get()[table])

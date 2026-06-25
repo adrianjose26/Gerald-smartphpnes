@@ -1,6 +1,7 @@
-import { useState } from 'react'
-import { Coins, Moon, Sun, Tag, Plus, Trash2, Pencil, RotateCcw, Check, X, Phone, Clock } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Coins, Moon, Sun, Tag, Plus, Trash2, Pencil, RotateCcw, Check, X, Phone, Clock, LogOut, User } from 'lucide-react'
 import { useStore } from '../store/useStore'
+import { supabase } from '../lib/supabase'
 import { CURRENCIES } from '../lib/format'
 import PageShell from '../components/layout/PageShell'
 import Modal from '../components/ui/Modal'
@@ -22,6 +23,11 @@ export default function Settings() {
   const [edit, setEdit] = useState({ nombre: '', color: '' })
   const [toDelete, setToDelete] = useState(null)
   const [resetOpen, setResetOpen] = useState(false)
+  const [email, setEmail] = useState('')
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setEmail(data?.user?.email || ''))
+  }, [])
 
   const countProd = (id) => productos.filter((p) => p.categoriaId === id).length
 
@@ -145,6 +151,19 @@ export default function Settings() {
               </li>
             ))}
           </ul>
+        </div>
+
+        {/* Cuenta */}
+        <div className="card p-5">
+          <div className="mb-3 flex items-center gap-2">
+            <User size={18} className="text-brand-cyan" />
+            <h3 className="font-display text-base font-bold text-light-text dark:text-dark-text">Cuenta</h3>
+          </div>
+          <p className="text-sm text-light-muted dark:text-dark-muted">Sesión iniciada como</p>
+          <p className="mb-3 truncate font-grotesk font-bold text-light-text dark:text-dark-text">{email || '—'}</p>
+          <button className="btn-ghost" onClick={() => supabase.auth.signOut()}>
+            <LogOut size={16} /> Cerrar sesión
+          </button>
         </div>
 
         {/* Negocio + datos */}
